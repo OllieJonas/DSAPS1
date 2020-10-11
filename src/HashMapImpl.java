@@ -32,17 +32,10 @@
  * value of the hashed result, since I got some weird results after testing. (This probably isn't the actual
  * way to deal with this in a real application, but it works so eh?)</p>
  *
- * <p>Collisions are handled using a linked list, which is contained in each bucket, primarily so I don't have to
- * go implementing some wacky {@link java.util.ArrayList#grow()} stuff to make the collection unbounded.</p>
- *
- * <p>However, if using this collision resolution system on its own, if the linked list contained inside the
- * buckets were large enough, the worst-case scenario would tend towards O(n) complexity (Since we're searching
- * through essentially just an ordinary list).</p>
- *
- * <p>In this implementation, if a certain threshold is reached, the list will be copied to an AVL tree, and the
- * head of the linked list will be set to null (Java's Garbage Collection will collect the entire list anyways so
- * no need to set everything to null). From this point on, the AVL tree is used for lookup, which would guarantee a
- * worst case lookup and insertion time of O(log(n)).</p>
+ * <p>Collisions are handled using an AVT tree. Although I do understand it's far more conventional to use a linked
+ * list, using this method of implementation would take O(n) complexity on lookup, which is prohibited in the question.
+ * Although an AVT tree will take up more memory (the nodes for a tree will take up considerably more memory than a
+ * linked list node), given the constraints being for time complexity, this makes more sense for this circumstance.<p>
  *
  * <p>This threshold for how large any linked list needs to be before it starts doing the binary search
  * can be customised using the {@code binaryThreshold} parameter, although I have defaulted it to 8.
