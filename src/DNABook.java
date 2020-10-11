@@ -146,6 +146,15 @@ public class DNABook implements SocialNetwork {
         V get(K key);
     }
 
+    @SuppressWarnings("unused")
+    public interface Node<K extends Comparable<K>, V> {
+        K getKey();
+
+        V getValue();
+
+        void setValue(V value);
+    }
+
     /*
      * ============================ IMPLEMENTATIONS ============================
      */
@@ -383,7 +392,7 @@ public class DNABook implements SocialNetwork {
                     return getNode(node.getRight(), key);  // same logic for right
             }
 
-            private static class TreeNode<K extends Comparable<K>, V> {
+            private static class TreeNode<K extends Comparable<K>, V> implements Node<K, V> {
                 private final K key;
                 private V value;
                 private int height;
@@ -400,6 +409,17 @@ public class DNABook implements SocialNetwork {
                     this.height = height;
                 }
 
+                @Override
+                public K getKey() {
+                    return key;
+                }
+
+                @Override
+                public V getValue() {
+                    return value;
+                }
+
+                @Override
                 public void setValue(V value) {
                     this.value = value;
                 }
@@ -428,14 +448,6 @@ public class DNABook implements SocialNetwork {
 
                 public void setRight(TreeNode<K, V> right) {
                     this.right = right;
-                }
-
-                public K getKey() {
-                    return key;
-                }
-
-                public V getValue() {
-                    return value;
                 }
 
                 public TreeNode<K, V> getLeft() {
