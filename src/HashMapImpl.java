@@ -72,6 +72,8 @@ public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
 
     private final int bucketCapacity;
 
+    private int elementCount;
+
     private final int treeCollisionThreshold;
 
     private final Bucket<?, ?>[] data;
@@ -101,17 +103,24 @@ public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
         bucket.put(key, value);
 
         data[hash] = bucket;
+        elementCount++;
     }
 
     @Override
     public V get(K key) {
-        Bucket<K, V> bucket;
-        return (bucket = getBucket(hashFunction(key))) == null ? null : bucket.get(key);
+        Bucket<K, V> bucket = getBucket(hashFunction(key));
+        return bucket == null ? null : bucket.get(key);
     }
 
     @Override
     public boolean containsKey(K key) {
-        return getBucket(hashFunction(key)).get(key) == null;
+        Bucket<K, V> bucket = getBucket(hashFunction(key));
+        return bucket != null && bucket.get(key) == null;
+    }
+
+    @Override
+    public int size() {
+        return elementCount;
     }
 
     private Bucket<K, V> getBucket(int hash) {

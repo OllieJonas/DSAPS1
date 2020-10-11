@@ -4,4 +4,6 @@ public interface IMap<K extends Comparable<K>, V> {
     V get(K key);
 
     boolean containsKey(K key);
+
+    int size();
 }
