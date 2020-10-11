@@ -158,11 +158,13 @@ public class Question2 {
         }
 
         default void logNaively(T t, U u, double time, TimeUnit unit) {
-            System.out.println("The naively measured time of execution using the input values of \"" + t + "\" and \""  + u + "\" is: " + time + " " + unit.getName() + "!");
+            System.out.println("The naively measured time of execution using the input values of \"" + t + "\" and "
+                    + "\""  + u + "\" is: " + time + " " + unit.getName() + "!");
         }
 
         default void logPrecisely(T t, U u, double time, TimeUnit unit, int noRepeats) {
-            System.out.println("The precisely measured time of execution using the input values of \"" + t + "\" and \""  + u + "\" over " + noRepeats + " repeats is: " + time + " " + unit.getName() + "!");
+            System.out.println("The precisely measured time of execution using the input values of \"" + t + "\" and "
+                    + "\""  + u + "\" over " + noRepeats + " repeats is: " + time + " " + unit.getName() + "!");
         }
 
         /**
