@@ -1,16 +1,15 @@
 /**
- * Quick implementation of the requireNonNull / checkNotNull method from Java's Objects / Guava's Preconditions
- * utility class.
+ * Quick implementation of 2 quick utility methods in the style of Java's Objects / Guava's Preconditions
+ * utility classes.
  */
 public class Util {
 
-    public static <T> T assertNotNull(T obj) {
+    public static void assertNotNull(Object obj) {
         if (obj == null)
             throw new NullPointerException("Somethings gone seriously wrong... :(");
-        return obj;
     }
 
-    public static <T> T checkCanCast(Object obj, Class<T> clazz) {
+    public static <T> T cast(Object obj, Class<T> clazz) {
         assertNotNull(obj);
 
         if (!obj.getClass().isAssignableFrom(clazz)) {

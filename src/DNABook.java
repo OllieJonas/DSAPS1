@@ -40,7 +40,7 @@ public class DNABook implements SocialNetwork {
      */
     public DNABook(int maxCapacity) {
         this.maxCapacity = maxCapacity;
-        this.users = new HashMapImpl<>(2);
+        this.users = new HashMapImpl<>();
         this.friendMatrix = new boolean[maxCapacity][maxCapacity];
     }
 
@@ -98,12 +98,5 @@ public class DNABook implements SocialNetwork {
 
     private boolean isValidId(int id) {
         return id >= 0;
-    }
-
-
-    public interface IMap<K extends Comparable<K>, V> {
-        void put(K key, V value);
-
-        V get(K key);
     }
 }

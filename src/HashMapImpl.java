@@ -35,7 +35,7 @@
  * <p>Collisions are handled using a linked list, which is contained in each bucket, primarily so I don't have to
  * go implementing some wacky {@link java.util.ArrayList#grow()} stuff to make the collection unbounded.</p>
  *
- * <p>However, if using this collision management system on its own, if the linked list contained inside the
+ * <p>However, if using this collision resolution system on its own, if the linked list contained inside the
  * buckets were large enough, the worst-case scenario would tend towards O(n) complexity (Since we're searching
  * through essentially just an ordinary list).</p>
  *
@@ -64,9 +64,9 @@
  * @param <V> The value type
  */
 @SuppressWarnings({"unchecked", "JavadocReference"})
-public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, V> {
+public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
 
-    static final int DEFAULT_BUCKET_CAPACITY = 100;
+    static final int DEFAULT_BUCKET_CAPACITY = 30;
 
     static final int DEFAULT_TREE_COLLISION_THRESHOLD = 8;
 
@@ -78,10 +78,6 @@ public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, 
 
     public HashMapImpl() {
         this(DEFAULT_BUCKET_CAPACITY, DEFAULT_TREE_COLLISION_THRESHOLD);
-    }
-
-    public HashMapImpl(int bucketCapacity) {
-        this(bucketCapacity, DEFAULT_TREE_COLLISION_THRESHOLD);
     }
 
     public HashMapImpl(int bucketCapacity, int collisionThreshold) {
@@ -113,6 +109,11 @@ public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, 
         return (bucket = getBucket(hashFunction(key))) == null ? null : bucket.get(key);
     }
 
+    @Override
+    public boolean containsKey(K key) {
+        return getBucket(hashFunction(key)).get(key) == null;
+    }
+
     private Bucket<K, V> getBucket(int hash) {
         return (Bucket<K, V>) data[hash];
     }
@@ -124,7 +125,7 @@ public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, 
 
     private static class Bucket<K extends Comparable<K>, V> {
 
-        private CollisionManagementStructure<K, V> collection;
+        private CollisionResolutionStructure<K, V> collection;
 
         private final int collisionThreshold;
 
@@ -132,7 +133,7 @@ public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, 
 
         public Bucket(int collisionThreshold) {
             this.collisionThreshold = collisionThreshold;
-            this.collection = new LinkedList<>();
+            this.collection = new LinkedList<>(); // default first collection to be used
         }
 
         public V get(K key) {
@@ -148,7 +149,8 @@ public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, 
 
         private void swapToTree() {
             this.usingTree = true;
-            this.collection = Util.checkCanCast(collection, LinkedList.class).toTree();
+            this.collection = Util.cast(collection, LinkedList.class).toTree(); // asserts no wacky stuff going on
+
         }
 
         private boolean shouldUseTree() {

@@ -1,5 +1,5 @@
 
-public class AVLTree<K extends Comparable<K>, V> implements CollisionManagementStructure<K, V> {
+public class AVLTree<K extends Comparable<K>, V> implements CollisionResolutionStructure<K, V> {
 
     private TreeNode<K, V> root;
 
@@ -24,6 +24,12 @@ public class AVLTree<K extends Comparable<K>, V> implements CollisionManagementS
     @Override
     public int size() {
         return size;
+    }
+
+    @Override
+    public void destroy() {
+        root = null;
+        size = 0;
     }
 
     private TreeNode<K, V> getNode(K key) {

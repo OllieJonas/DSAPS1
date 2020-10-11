@@ -1,4 +1,4 @@
-public class LinkedList<K extends Comparable<K>, V> implements CollisionManagementStructure<K, V> {
+public class LinkedList<K extends Comparable<K>, V> implements CollisionResolutionStructure<K, V> {
 
     private ListNode<K, V> first;
 
@@ -24,8 +24,13 @@ public class LinkedList<K extends Comparable<K>, V> implements CollisionManageme
         return size;
     }
 
+    @Override
+    public void destroy() {
+        first = null;
+        size = 0;
+    }
+
     public AVLTree<K, V> toTree() {
-        System.out.println("Swapping to tree...");
         AVLTree<K, V> tree = new AVLTree<>();
         ListNode<K, V> curr = first;
 
@@ -33,6 +38,8 @@ public class LinkedList<K extends Comparable<K>, V> implements CollisionManageme
             tree.put(curr.getKey(), curr.getValue());
             curr = curr.getNext();
         }
+
+        destroy();
 
         return tree;
     }
