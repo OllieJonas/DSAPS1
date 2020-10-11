@@ -6,9 +6,8 @@
  *
  *
  * <p>HashMap has O(1) complexity. Hashing function is taken from {@link java.util.HashMap} with a couple of
- * modifications. Collisions are dealt with a linked list. If this linked list gets too large, it's converted to
- * an AVL tree and that's used for lookup / insertion from there. So, a worst case complexity of O(log(n)),
- * although given we only have 100 entries max, it will almost certainly never reach that.</p>
+ * modifications. Collisions are resolved using an AVT Tree because although each node takes up more memory than a
+ * linked list, the lookup / insertion time will always be O(log(n)), which is what is asked for in the question.</p>
  *
  *
  * ======= EXPLANATION =======
@@ -18,11 +17,10 @@
  * There isn't an implementation to remove from the Map, seeing as it's not asked for in the question. (Who would
  * want to remove friends anyways, right? Never in DSABook! :D)</p>
  *
- * <p>This implementation also provides two additional benefits. Firstly, this collection is unbounded. Therefore,
- * if you were able to implement the friend matrix in an unbounded and more space-efficient way
- * (maybe using a Graph of some kind?), then you could have a theoretical infinite amount of users and friends
- * (provided you had the memory to do it, obviously). Secondly, there is now no longer a requirement to
- * add the users in alphabetical order, since the User ID is now found via hashing.</p>
+ * <p>This implementation also provides two additional benefits. Firstly, this collection is unbounded. With this,
+ * you could have a theoretical infinite amount of users and friends (provided you had the memory to do it, obviously).
+ * Secondly, there is now no longer a requirement to add the users in alphabetical order,since the User ID is
+ * now found via hashing.</p>
  *
  *
  * ======= IMPLEMENTATION  =======
@@ -32,23 +30,26 @@
  * value of the hashed result, since I got some weird results after testing. (This probably isn't the actual
  * way to deal with this in a real application, but it works so eh?)</p>
  *
- * <p>Collisions are handled using an AVT tree. Although I do understand it's far more conventional to use a linked
- * list, using this method of implementation would take O(n) complexity on lookup, which is prohibited in the question.
- * Although an AVT tree will take up more memory (the nodes for a tree will take up considerably more memory than a
- * linked list node), given the constraints being for time complexity, this makes more sense for this circumstance.<p>
+ * <p>Collisions are resolved using an AVT tree. Although I do understand it's far more conventional to use a linked
+ * list, using this method of implementation would take O(n) complexity for lookup / insertion, which is prohibited
+ * in the question. Although an AVT tree will take up more memory (the nodes for a tree will take up considerably
+ * more memory than a linked list node), given the constraints being for time complexity, using a tree makes
+ * more sense in this case.<p>
  *
- * <p>This threshold for how large any linked list needs to be before it starts doing the binary search
- * can be customised using the {@code binaryThreshold} parameter, although I have defaulted it to 8.
- * This, therefore, should ensure worst-case complexity of O(log(n)). That being said, at the point where the
- * linked list is being transferred to a tree, the complexity at this part will be a guaranteed O(n).
- * However, given the upsides if you're dealing with a large amount of users, I personally think this tradeoff
- * is worth it.</p>
+ * <p>One of the main disadvantages of using an AVT tree over a linked list however, is that there is a requirement
+ * that the keys are comparable in some way - hence the {@code <K extends Comparable<K>>} bounded type parameter given in
+ * the key. However, given that we're using Strings as our key in our implementation, this won't really affect us.</p>
+ *
+ *<p>I am also aware that {@link java.util.HashMap} uses a combination of a LinkedList and a red-black tree
+ * to resolve their collisions to save memory. However, I opted against this for two reasons. The first is stated above,
+ * where it would require a O(n) lookup time. Secondly, converting I found converting a linked list to an AVT tree
+ * would also take O(n) time to complete, which again isn't worth it considering we will only have 100 users.</p>
  *
  *
  * ======= NOTES  =======
  *
  * <p>There's definitely a sneaky way of not forcing the key to implement the {@link java.lang.Comparable}
- * interface, but it's easier for the AVL tree.</p>
+ * interface. However, it's easier for the AVL tree and I can't be bothered to figure it out.</p>
  *
  * <p>We can suppress un-checked warnings since the public interface that the user can interact with
  * never theoretically causes any casting exceptions - all casting is handled internally.</p>
@@ -56,31 +57,26 @@
  * @param <K> The key type
  * @param <V> The value type
  */
-@SuppressWarnings({"unchecked", "JavadocReference"})
-public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
+public class HashMapImpl<K extends Comparable<K>, V> implements HashMap<K, V> {
 
     static final int DEFAULT_BUCKET_CAPACITY = 30;
-
-    static final int DEFAULT_TREE_COLLISION_THRESHOLD = 8;
 
     private final int bucketCapacity;
 
     private int elementCount;
 
-    private final int treeCollisionThreshold;
-
     private final Bucket<?, ?>[] data;
 
     public HashMapImpl() {
-        this(DEFAULT_BUCKET_CAPACITY, DEFAULT_TREE_COLLISION_THRESHOLD);
+        this(DEFAULT_BUCKET_CAPACITY);
     }
 
-    public HashMapImpl(int bucketCapacity, int collisionThreshold) {
+    public HashMapImpl(int bucketCapacity) {
         if (bucketCapacity <= 1) {
             throw new IllegalArgumentException("Illegal argument: bucketCapacity - Bucket capacity must be greater than 1!");
         }
+
         this.bucketCapacity = bucketCapacity;
-        this.treeCollisionThreshold = collisionThreshold;
         this.data = new Bucket<?, ?>[bucketCapacity];
     }
 
@@ -90,7 +86,7 @@ public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
         Bucket<K, V> bucket = getBucket(hash);
 
         if (bucket == null) {
-            bucket = new Bucket<>(treeCollisionThreshold);
+            bucket = new Bucket<>();
         }
 
         bucket.put(key, value);
@@ -116,6 +112,7 @@ public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
         return elementCount;
     }
 
+    @SuppressWarnings("unchecked")
     private Bucket<K, V> getBucket(int hash) {
         return (Bucket<K, V>) data[hash];
     }
@@ -127,36 +124,18 @@ public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
 
     private static class Bucket<K extends Comparable<K>, V> {
 
-        private CollisionResolutionStructure<K, V> collection;
+        private final AVLTree<K, V> tree;
 
-        private final int collisionThreshold;
-
-        private boolean usingTree;
-
-        public Bucket(int collisionThreshold) {
-            this.collisionThreshold = collisionThreshold;
-            this.collection = new LinkedList<>(); // default first collection to be used
+        public Bucket() {
+            this.tree = new AVLTreeImpl<>(); // default first collection to be used
         }
 
         public V get(K key) {
-            return collection.get(key);
+            return tree.get(key);
         }
 
         private void put(K key, V val) {
-            collection.put(key, val);
-
-            if (shouldUseTree() && !usingTree)
-                swapToTree();
-        }
-
-        private void swapToTree() {
-            this.usingTree = true;
-            this.collection = Util.cast(collection, LinkedList.class).toTree(); // asserts no wacky stuff going on
-
-        }
-
-        private boolean shouldUseTree() {
-            return collection.size() >= collisionThreshold;
+            tree.put(key, val);
         }
     }
 }

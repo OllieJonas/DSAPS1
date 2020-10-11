@@ -1,4 +1,4 @@
-public interface IMap<K extends Comparable<K>, V> {
+public interface HashMap<K extends Comparable<K>, V> {
     void put(K key, V value);
 
     V get(K key);

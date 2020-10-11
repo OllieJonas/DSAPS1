@@ -1,6 +1,6 @@
-public class HashSetImpl<E extends Comparable<E>> implements ISet<E> {
+public class HashSetImpl<E extends Comparable<E>> implements HashSet<E> {
 
-    private final IMap<E, Object> map;
+    private final HashMap<E, Object> map;
 
     private final Object dummy = new Object();
 

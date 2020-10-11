@@ -1,7 +1,7 @@
 public class AVLTreeTest {
 
     public static void main(String[] args) {
-        AVLTree<String, Integer> tree = new AVLTree<>();
+        AVLTreeImpl<String, Integer> tree = new AVLTreeImpl<>();
 
         tree.put("David", 25);
         tree.put("Chris", 20);
