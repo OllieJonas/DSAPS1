@@ -35,6 +35,8 @@
  * Obviously, this is far from ideal, given how much memory this will take up, however there isn't a memory usage
  * limitation put into the question, so I opted for this route instead.</p>
  *
+ * <p>It is also worth noting that this implementation is not thread-safe.</p>
+ *
  *
  * ======= NOTES =======
  *
@@ -132,16 +134,16 @@ public class DNABook implements SocialNetwork {
         int size();
     }
 
-    public interface AVLTree<K extends Comparable<K>, V> {
-        void put(K key, V elem);
-
-        V get(K key);
-    }
-
     public interface HashSet<E extends Comparable<E>> {
         void add(E elem);
 
         boolean contains(E elem);
+    }
+
+    public interface CollisionResolvingCollection<K extends Comparable<K>, V> {
+        void put(K key, V elem);
+
+        V get(K key);
     }
 
     /*
@@ -197,11 +199,16 @@ public class DNABook implements SocialNetwork {
      * AVT tree would also take O(n) time to complete, which again isn't worth it considering we will only have 100
      * users.</p>
      *
+
+     *
      *
      * ======= NOTES  =======
      *
      * <p>There's definitely a sneaky way of not forcing the key to implement the {@link java.lang.Comparable}
      * interface. However, it's easier for the AVL tree and I can't be bothered to figure it out.</p>
+     *
+     * <p>It is also worth noting that this implementation is not thread-safe, and doesn't perform any kind of
+     * resizing.</p>
      *
      * <p>We can suppress any un-checked warnings since the public interface that the user can interact with
      * never theoretically causes any casting exceptions - all casting is handled internally.</p>
@@ -211,13 +218,13 @@ public class DNABook implements SocialNetwork {
      */
     public static class HashMapImpl<K extends Comparable<K>, V> implements HashMap<K, V> {
 
-        static final int DEFAULT_BUCKET_CAPACITY = 30;
+        static final int DEFAULT_BUCKET_CAPACITY = 50;
 
         private final int bucketCapacity;
 
-        private int elementCount;
+        private transient int elementCount;
 
-        private final Bucket<?, ?>[] data;
+        private final transient CollisionResolvingCollection<?, ?>[] table;
 
         public HashMapImpl() {
             this(DEFAULT_BUCKET_CAPACITY);
@@ -229,33 +236,34 @@ public class DNABook implements SocialNetwork {
             }
 
             this.bucketCapacity = bucketCapacity;
-            this.data = new Bucket<?, ?>[bucketCapacity];
+            this.table = new CollisionResolvingCollection<?, ?>[bucketCapacity];
         }
 
         @Override
         public void put(K key, V value) {
             int hash = hashFunction(key);
-            Bucket<K, V> bucket = getBucket(hash);
+            CollisionResolvingCollection<K, V> bucket = getBucket(hash);
 
             if (bucket == null) {
-                bucket = new Bucket<>();
+                bucket = new AVLTree<>();
             }
 
             bucket.put(key, value);
 
-            data[hash] = bucket;
+            table[hash] = bucket;
             elementCount++;
         }
 
         @Override
         public V get(K key) {
-            Bucket<K, V> bucket = getBucket(hashFunction(key));
+            checkNotNull(key);
+            CollisionResolvingCollection<K, V> bucket = getBucket(hashFunction(key));
             return bucket == null ? null : bucket.get(key);
         }
 
         @Override
         public boolean containsKey(K key) {
-            Bucket<K, V> bucket = getBucket(hashFunction(key));
+            CollisionResolvingCollection<K, V> bucket = getBucket(hashFunction(key));
             return bucket != null && bucket.get(key) != null;
         }
 
@@ -265,50 +273,13 @@ public class DNABook implements SocialNetwork {
         }
 
         @SuppressWarnings("unchecked")
-        private Bucket<K, V> getBucket(int hash) {
-            return (Bucket<K, V>) data[hash];
+        private CollisionResolvingCollection<K, V> getBucket(int hash) {
+            return (CollisionResolvingCollection<K, V>) table[hash];
         }
 
         private int hashFunction(Object key) {
             int h;
             return key == null ? 0 : Math.abs(((h = key.hashCode()) ^ (h >>> 16)) % bucketCapacity);
-        }
-
-        private static class Bucket<K extends Comparable<K>, V> {
-
-            /**
-             * Initial key / value combination - prevents the creation of a tree unnecessarily if there's only going to
-             * be one thing in the bucket - which is the most likely scenario.
-             */
-            private K key;
-            private V val;
-
-            private AVLTree<K, V> tree;
-
-            public Bucket() {
-            }
-
-            public V get(K key) {
-                if (this.key != null) {
-
-                    if (this.key == key)
-                        return val;
-                    else if (this.tree != null)
-                        return tree.get(key);
-
-                }
-                return null;
-            }
-
-            private void put(K key, V val) {
-                if (this.key != null) {
-                    this.tree = new AVLTreeImpl<>(); // default first collection to be used
-                    tree.put(key, val);
-                } else {
-                    this.key = key;
-                    this.val = val;
-                }
-            }
         }
 
         /**
@@ -317,11 +288,11 @@ public class DNABook implements SocialNetwork {
          * @param <K> The type of the key (must implement Comparable interface)
          * @param <V> The type of the value
          */
-        public static class AVLTreeImpl<K extends Comparable<K>, V> implements AVLTree<K, V> {
+        public static class AVLTree<K extends Comparable<K>, V> implements CollisionResolvingCollection<K, V> {
 
             private TreeNode<K, V> root;
 
-            public AVLTreeImpl() {
+            public AVLTree() {
             }
 
             @Override
@@ -331,7 +302,6 @@ public class DNABook implements SocialNetwork {
 
             @Override
             public V get(K key) {
-                assertNotNull(key);
                 TreeNode<K, V> node = getNode(key);
                 return node == null ? null : node.getValue();
             }
@@ -344,11 +314,11 @@ public class DNABook implements SocialNetwork {
                 if (node == null) return new TreeNode<>(key, val); // recursively go through until we find an empty node
                 int comparison = key.compareTo(node.getKey());
 
-                if (comparison < 0) {  // if key already exists, update the value
+                if (comparison < 0) {
                     node.setLeft(putNode(node.getLeft(), key, val));
                 } else if (comparison > 0) {
                     node.setRight(putNode(node.getRight(), key, val));
-                } else {
+                } else {  // if key already exists, update the value
                     node.setValue(val);
                     return node;
                 }
@@ -504,8 +474,10 @@ public class DNABook implements SocialNetwork {
         }
     }
 
-    public static void assertNotNull(Object obj) {
+    @SuppressWarnings("UnusedReturnValue")
+    public static <T> T checkNotNull(T obj) {
         if (obj == null)
             throw new NullPointerException("Somethings gone seriously wrong... :(");
+        return obj;
     }
 }
