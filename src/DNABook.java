@@ -55,6 +55,7 @@ public class DNABook implements SocialNetwork {
 
     private final int maxCapacity;
 
+
     public DNABook() {
         this(-1);
     }
@@ -235,6 +236,7 @@ public class DNABook implements SocialNetwork {
 
         private final transient CollisionResolvingCollection<?, ?>[] table;
 
+
         public HashMapImpl() {
             this(DEFAULT_BUCKET_CAPACITY);
         }
@@ -300,6 +302,7 @@ public class DNABook implements SocialNetwork {
         public static class AVLTree<K extends Comparable<K>, V> implements CollisionResolvingCollection<K, V> {
 
             private TreeNode<K, V> root;
+
 
             public AVLTree() {
             }
@@ -378,6 +381,7 @@ public class DNABook implements SocialNetwork {
                 node2.setHeight(1 + Math.max(node2.getLeftHeight(), node2.getRightHeight()));
                 return node2;
             }
+
             private TreeNode<K, V> getNode(TreeNode<K, V> node, K key) {
                 if (node == null) // couldn't find the node
                     return null;
@@ -393,11 +397,17 @@ public class DNABook implements SocialNetwork {
             }
 
             private static class TreeNode<K extends Comparable<K>, V> implements Node<K, V> {
+
                 private final K key;
+
                 private V value;
+
                 private int height;
+
                 private TreeNode<K, V> left;
+
                 private TreeNode<K, V> right;
+
 
                 public TreeNode(K key, V value) {
                     this(key, value, 0);
@@ -470,6 +480,7 @@ public class DNABook implements SocialNetwork {
         private final HashMap<E, Object> map;
 
         private final Object dummy = new Object();
+
 
         public HashSetImpl() {
             this.map = new HashMapImpl<>();
