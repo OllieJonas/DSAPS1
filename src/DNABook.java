@@ -6,8 +6,7 @@ public class DNABook implements SocialNetwork {
     private final IMap<String, ISet<String>> users;
 
     /**
-     * The constructor for the DNABook. The maximum capacity dictates the size of both the user array and the
-     * friend matrix.
+     * The constructor for the DNABook.
      */
     public DNABook() {
         this.users = new HashMapImpl<>();

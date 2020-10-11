@@ -115,7 +115,7 @@ public class HashMapImpl<K extends Comparable<K>, V> implements IMap<K, V> {
     @Override
     public boolean containsKey(K key) {
         Bucket<K, V> bucket = getBucket(hashFunction(key));
-        return bucket != null && bucket.get(key) == null;
+        return bucket != null && bucket.get(key) != null;
     }
 
     @Override
