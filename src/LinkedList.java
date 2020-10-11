@@ -1,4 +1,4 @@
-public class LinkedList<K extends Comparable<K>, V> implements KeyValueCollection<K, V> {
+public class LinkedList<K extends Comparable<K>, V> implements CollisionManagementStructure<K, V> {
 
     private ListNode<K, V> first;
 
@@ -86,7 +86,7 @@ public class LinkedList<K extends Comparable<K>, V> implements KeyValueCollectio
         return null;
     }
 
-    private static class ListNode<K extends Comparable<K>, V> implements INode<K, V> {
+    private static class ListNode<K extends Comparable<K>, V> {
         private final K key;
         private V value;
         private ListNode<K, V> next;

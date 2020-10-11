@@ -1,12 +1,7 @@
-import java.nio.charset.StandardCharsets;
-import java.util.Random;
-
 public class AVLTreeTest {
 
     public static void main(String[] args) {
         AVLTree<String, Integer> tree = new AVLTree<>();
-
-        Random r = new Random();
 
         tree.put("David", 25);
         tree.put("Chris", 20);
@@ -21,5 +16,7 @@ public class AVLTreeTest {
 
         System.out.println(tree.get("George"));
         System.out.println(tree.get("Katie"));
+
+        System.out.println(tree.size());
     }
 }

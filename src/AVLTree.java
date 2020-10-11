@@ -1,11 +1,17 @@
 
-public class AVLTree<K extends Comparable<K>, V> implements KeyValueCollection<K, V> {
+public class AVLTree<K extends Comparable<K>, V> implements CollisionManagementStructure<K, V> {
 
     private TreeNode<K, V> root;
+
+    private int size;
+
+    public AVLTree() {
+    }
 
     @Override
     public void put(K key, V elem) {
         this.root = this.root == null ? new TreeNode<>(key, elem) : putNode(root, key, elem);
+        size++;
     }
 
     @Override
@@ -17,7 +23,7 @@ public class AVLTree<K extends Comparable<K>, V> implements KeyValueCollection<K
 
     @Override
     public int size() {
-        return root.getHeight();
+        return size;
     }
 
     private TreeNode<K, V> getNode(K key) {
@@ -97,7 +103,7 @@ public class AVLTree<K extends Comparable<K>, V> implements KeyValueCollection<K
             return getNode(node.getRight(), key);  // same logic for right
     }
 
-    static class TreeNode<K extends Comparable<K>, V> implements INode<K, V> {
+    static class TreeNode<K extends Comparable<K>, V> {
         private final K key;
         private V value;
         private int height;

@@ -124,7 +124,7 @@ public class HashMapImpl<K extends Comparable<K>, V> implements DNABook.IMap<K, 
 
     private static class Bucket<K extends Comparable<K>, V> {
 
-        private KeyValueCollection<K, V> collection;
+        private CollisionManagementStructure<K, V> collection;
 
         private final int collisionThreshold;
 

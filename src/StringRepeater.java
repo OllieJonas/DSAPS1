@@ -1,4 +1,4 @@
-@SuppressWarnings({"StringBufferMayBeStringBuilder", "StringRepeatCanBeUsed", "StringConcatenationInLoop", "unused"})
+@SuppressWarnings({"StringBufferMayBeStringBuilder", "StringConcatenationInLoop", "unused"})
 public class StringRepeater {
 
     public String badRepeatString(String s, int n) {
