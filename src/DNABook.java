@@ -35,22 +35,22 @@
  * Obviously, this is far from ideal, given how much memory this will take up, however there isn't a memory usage
  * limitation put into the question, so I opted for this route instead.</p>
  *
- * <p>It is also worth noting that this implementation is not thread-safe.</p>
  *
  *
  * ======= NOTES =======
  *
+ * <p>It is also worth noting that this implementation is not thread-safe, and the HashMap doesn't provide any
+ * resizing functionality.</p>
+ *
  * <p>I do understand that this implementation is absolutely 100% overkill. However, to be honest, I really enjoyed
  * challenging myself with this! I feel like I've learned a lot about how Java implements a HashMap and HashSet, how to
- * implement my own as well as learn more about self-balancing trees.</p>
+ * implement my own as well as learn more about self-balancing trees. Thank you very much for providing me with a
+ * way of doing this! :)</p>
  */
 public class DNABook implements SocialNetwork {
 
     static final int DEFAULT_MAX_CAPACITY = 100;
 
-    /**
-     * The users that are currently stored.
-     */
     private final HashMap<String, HashSet<String>> users;
 
     private final int maxCapacity;
@@ -65,9 +65,6 @@ public class DNABook implements SocialNetwork {
         this(bounded ? -1 : DEFAULT_MAX_CAPACITY);
     }
 
-    /**
-     * The constructor for the DNABook.
-     */
     public DNABook(int maxCapacity) {
         this.users = new HashMapImpl<>();
         this.maxCapacity = maxCapacity;
@@ -122,15 +119,14 @@ public class DNABook implements SocialNetwork {
         return users.size();
     }
 
-    /*
-     * ============================ INTERFACES ============================
-     */
+    /* ============================ INTERFACES ============================ */
+
     public interface HashMap<K extends Comparable<K>, V> {
         void put(K key, V value);
 
         V get(K key);
 
-        boolean containsKey(K key);
+        boolean containsKey(K key); // used in hashset.contains(E elem)
 
         int size();
     }
@@ -142,7 +138,7 @@ public class DNABook implements SocialNetwork {
     }
 
     public interface CollisionResolvingCollection<K extends Comparable<K>, V> {
-        void put(K key, V elem);
+        void put(K key, V value);
 
         V get(K key);
     }
@@ -156,9 +152,7 @@ public class DNABook implements SocialNetwork {
         void setValue(V value);
     }
 
-    /*
-     * ============================ IMPLEMENTATIONS ============================
-     */
+    /* ============================ INTERFACE IMPLEMENTATIONS ============================ */
 
     /**
      * <p>Own implementation of a very simplistic HashMap.</p>
@@ -242,9 +236,8 @@ public class DNABook implements SocialNetwork {
         }
 
         public HashMapImpl(int bucketCapacity) {
-            if (bucketCapacity < 1) {
+            if (bucketCapacity < 1)
                 throw new IllegalArgumentException("Illegal argument: bucketCapacity - bucketCapacity < 1!");
-            }
 
             this.bucketCapacity = bucketCapacity;
             this.table = new CollisionResolvingCollection<?, ?>[bucketCapacity];
@@ -308,8 +301,8 @@ public class DNABook implements SocialNetwork {
             }
 
             @Override
-            public void put(K key, V elem) {
-                this.root = this.root == null ? new TreeNode<>(key, elem) : putNode(root, key, elem);
+            public void put(K key, V value) {
+                this.root = this.root == null ? new TreeNode<>(key, value) : putNode(root, key, value);
             }
 
             @Override
@@ -496,6 +489,8 @@ public class DNABook implements SocialNetwork {
             return map.containsKey(elem);
         }
     }
+
+    /* ============================ UTILITY METHODS ============================ */
 
     @SuppressWarnings("UnusedReturnValue")
     public static <T> T checkNotNull(T obj) {
